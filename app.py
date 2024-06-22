@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import ffmpeg
 from pydub import AudioSegment
 from PIL import Image
 import io
@@ -36,29 +37,33 @@ def compress_image(input_file, quality=50, lossless=False):
 
 # Function to compress video using ffmpeg-python
 def compress_video(input_file, bitrate='500k', lossless=False):
-    # Save the uploaded video file to a temporary file
-    temp_input_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4')
-    temp_input_file.write(input_file.read())
-    temp_input_file.close()
-    
-    output_buffer = io.BytesIO()
-    temp_output_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4')
-    
-    if lossless:
-        ffmpeg.input(temp_input_file.name).output(temp_output_file.name, vcodec='libx264', preset='ultrafast', crf=0).run()
-    else:
-        ffmpeg.input(temp_input_file.name).output(temp_output_file.name, vcodec='libx264', bitrate=bitrate).run()
-    
-    # Read the compressed video back into memory
-    with open(temp_output_file.name, 'rb') as f:
-        output_buffer.write(f.read())
-    
-    # Cleanup temporary files
-    os.remove(temp_input_file.name)
-    os.remove(temp_output_file.name)
-    
-    output_buffer.seek(0)
-    return output_buffer.read()
+    try:
+        # Save the uploaded video file to a temporary file
+        temp_input_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4')
+        temp_input_file.write(input_file.read())
+        temp_input_file.close()
+        
+        output_buffer = io.BytesIO()
+        temp_output_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4')
+        
+        if lossless:
+            ffmpeg.input(temp_input_file.name).output(temp_output_file.name, vcodec='libx264', preset='ultrafast', crf=0).run()
+        else:
+            ffmpeg.input(temp_input_file.name).output(temp_output_file.name, vcodec='libx264', video_bitrate=bitrate).run()
+        
+        # Read the compressed video back into memory
+        with open(temp_output_file.name, 'rb') as f:
+            output_buffer.write(f.read())
+        
+        # Cleanup temporary files
+        os.remove(temp_input_file.name)
+        os.remove(temp_output_file.name)
+        
+        output_buffer.seek(0)
+        return output_buffer.read()
+    except Exception as e:
+        st.error(f"An error occurred during video compression: {e}")
+        return None
 
 # Define page for audio compression
 def audio_compression():
@@ -167,28 +172,9 @@ def video_compression():
         if st.button("Compress Video"):
             st.write("Compressing video...")
             compressed_video = compress_video(video_file, bitrate=video_bitrate, lossless=(compression_type == "Lossless"))
-            st.success("Video compression successful!")
-            
-            # Download button for compressed video
-            st.write("### Download Compressed Video")
-            video_download_button_str = f"Download Compressed Video File ({os.path.splitext(video_file.name)[0]}_compressed.mp4)"
-            st.download_button(label=video_download_button_str, data=compressed_video, file_name=f"{os.path.splitext(video_file.name)[0]}_compressed.mp4", mime="video/mp4")
-
-# Multipage function
-def multipage():
-    pages = {
-        "Audio Compression": audio_compression,
-        "Image Compression": image_compression,
-        "Video Compression": video_compression
-    }
-    
-    st.sidebar.title("COMPRESTHOR - 1217050104")
-    st.sidebar.write("Muhammad Thoriq")
-    page_selection = st.sidebar.radio("Go to", list(pages.keys()))
-    
-    page = pages[page_selection]
-    page()
-
-# Run the app
-if __name__ == '__main__':
-    multipage()
+            if compressed_video:
+                st.success("Video compression successful!")
+                
+                # Download button for compressed video
+                st.write("### Download Compressed Video")
+                video
