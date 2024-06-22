@@ -2,3 +2,4 @@ streamlit
 pydub
 Pillow
 moviepy
+ffmpeg-python
