@@ -36,7 +36,7 @@ def compress_image(input_file, quality=50, lossless=False):
 
 # Function to compress video
 def compress_video(input_file, bitrate='500k', lossless=False):
-    video = VideoFileClip(input_file)
+    video = VideoFileClip(input_file.name)
     output_buffer = io.BytesIO()
     
     if lossless:
@@ -169,11 +169,10 @@ def multipage():
         "Video Compression": video_compression
     }
     
-    st.sidebar.title("COMPRESTHOR - 1217050104")
-    st.sidebar.write("Muhammad Thoriq")
-    page_selection = st.sidebar.radio("Go to", list(pages.keys()))
+    st.sidebar.title("Navigation")
+    selection = st.sidebar.radio("Go to", list(pages.keys()))
     
-    page = pages[page_selection]
+    page = pages[selection]
     page()
 
 # Run the app
