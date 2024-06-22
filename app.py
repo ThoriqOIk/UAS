@@ -1,5 +1,6 @@
 import streamlit as st
 import os
+import ffmpeg
 from pydub import AudioSegment
 from PIL import Image
 import io
