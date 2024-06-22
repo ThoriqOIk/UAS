@@ -4,6 +4,7 @@ from pydub import AudioSegment
 from PIL import Image
 from moviepy.editor import VideoFileClip
 import io
+import tempfile
 
 # Function to compress audio
 def compress_audio(input_file, bitrate='64k', lossless=False):
@@ -36,13 +37,27 @@ def compress_image(input_file, quality=50, lossless=False):
 
 # Function to compress video
 def compress_video(input_file, bitrate='500k', lossless=False):
-    video = VideoFileClip(input_file)
+    # Save the uploaded video file to a temporary file
+    temp_input_file = tempfile.NamedTemporaryFile(delete=False)
+    temp_input_file.write(input_file.read())
+    temp_input_file.close()
+    
+    video = VideoFileClip(temp_input_file.name)
     output_buffer = io.BytesIO()
+    temp_output_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4')
     
     if lossless:
-        video.write_videofile(output_buffer, codec='libx264', preset='ultrafast', ffmpeg_params=['-crf', '0'])
+        video.write_videofile(temp_output_file.name, codec='libx264', preset='ultrafast', ffmpeg_params=['-crf', '0'])
     else:
-        video.write_videofile(output_buffer, codec='libx264', preset='slow', bitrate=bitrate)
+        video.write_videofile(temp_output_file.name, codec='libx264', preset='slow', bitrate=bitrate)
+    
+    # Read the compressed video back into memory
+    with open(temp_output_file.name, 'rb') as f:
+        output_buffer.write(f.read())
+    
+    # Cleanup temporary files
+    os.remove(temp_input_file.name)
+    os.remove(temp_output_file.name)
     
     output_buffer.seek(0)
     return output_buffer.read()
