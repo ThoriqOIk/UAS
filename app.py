@@ -47,7 +47,6 @@ def compress_video(input_file, bitrate='500k', lossless=False):
     output_buffer.seek(0)
     return output_buffer.read()
 
-
 # Define page for audio compression
 def audio_compression():
     st.title("Audio Compression")
@@ -125,17 +124,43 @@ def image_compression():
             st.download_button(label=image_download_button_str, data=compressed_image, file_name=f"{os.path.splitext(image_file.name)[0]}_compressed.{('webp' if compression_type == 'Lossless' else 'jpg')}", mime="image/webp" if compression_type == "Lossless" else "image/jpeg")
 
 # Define page for video compression
-def video_compression(input_file, bitrate='500k', lossless=False):
-    video = VideoFileClip(input_file)
-    output_buffer = io.BytesIO()
+def video_compression():
+    st.title("Video Compression")
     
-    if lossless:
-        video.write_videofile(output_buffer, codec='libx264', preset='ultrafast', ffmpeg_params=['-crf', '0'])
+    # Sidebar
+    st.sidebar.title("Settings")
+    compression_type = st.sidebar.radio("Compression Type", ["Lossy", "Lossless"])
+    
+    if compression_type == "Lossy":
+        video_bitrate = st.sidebar.selectbox("Select video bitrate", ["500k", "1000k", "1500k", "2000k", "2500k"])
     else:
-        video.write_videofile(output_buffer, codec='libx264', preset='slow', bitrate=bitrate)
+        video_bitrate = None
     
-    output_buffer.seek(0)
-    return output_buffer.read()
+    # Main content
+    st.write("""
+    ## Upload your video file and compress it!
+    """)
+    
+    # File upload - video
+    video_file = st.file_uploader("Upload a video file", type=["mp4", "avi", "mov", "mkv"])
+    
+    if video_file is not None:
+        st.video(video_file)
+        st.write("Uploaded Video File Details:")
+        video_details = {"Filename": video_file.name, "FileType": video_file.type, "FileSize": video_file.size}
+        st.write(video_details)
+        
+        # Compress video button
+        if st.button("Compress Video"):
+            st.write("Compressing video...")
+            compressed_video = compress_video(video_file, bitrate=video_bitrate, lossless=(compression_type == "Lossless"))
+            st.success("Video compression successful!")
+            
+            # Download button for compressed video
+            st.write("### Download Compressed Video")
+            video_download_button_str = f"Download Compressed Video File ({os.path.splitext(video_file.name)[0]}_compressed.mp4)"
+            st.download_button(label=video_download_button_str, data=compressed_video, file_name=f"{os.path.splitext(video_file.name)[0]}_compressed.mp4", mime="video/mp4")
+
 # Multipage function
 def multipage():
     pages = {
