@@ -1,8 +1,8 @@
 import streamlit as st
 import os
+import ffmpeg
 from pydub import AudioSegment
 from PIL import Image
-from moviepy.editor import VideoFileClip
 import io
 import tempfile
 
@@ -35,21 +35,20 @@ def compress_image(input_file, quality=50, lossless=False):
     
     return output_buffer.getvalue()
 
-# Function to compress video
+# Function to compress video using ffmpeg-python
 def compress_video(input_file, bitrate='500k', lossless=False):
     # Save the uploaded video file to a temporary file
-    temp_input_file = tempfile.NamedTemporaryFile(delete=False)
+    temp_input_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4')
     temp_input_file.write(input_file.read())
     temp_input_file.close()
     
-    video = VideoFileClip(temp_input_file.name)
     output_buffer = io.BytesIO()
     temp_output_file = tempfile.NamedTemporaryFile(delete=False, suffix='.mp4')
     
     if lossless:
-        video.write_videofile(temp_output_file.name, codec='libx264', preset='ultrafast', ffmpeg_params=['-crf', '0'])
+        ffmpeg.input(temp_input_file.name).output(temp_output_file.name, vcodec='libx264', preset='ultrafast', crf=0).run()
     else:
-        video.write_videofile(temp_output_file.name, codec='libx264', preset='slow', bitrate=bitrate)
+        ffmpeg.input(temp_input_file.name).output(temp_output_file.name, vcodec='libx264', bitrate=bitrate).run()
     
     # Read the compressed video back into memory
     with open(temp_output_file.name, 'rb') as f:
