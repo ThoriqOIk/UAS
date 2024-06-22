@@ -7,11 +7,11 @@ import io
 # Function to compress audio
 def compress_audio(input_file, bitrate='64k', lossless=False):
     audio = AudioSegment.from_file(input_file)
-    compressed_audio = audio.set_frame_rate(44100).set_channels(1)
+    compressed_audio = audio.set_frame_rate(48000).set_channels(1)
     output_buffer = io.BytesIO()
     
     if lossless:
-        compressed_audio.export(output_buffer, format='flac')
+        compressed_audio.export(output_buffer, format='opus', codec='libopus')
     else:
         compressed_audio.export(output_buffer, format='mp3', bitrate=bitrate)
     
@@ -24,7 +24,7 @@ def compress_image(input_file, quality=50, lossless=False):
     img_format = input_file.name.split(".")[-1].lower()
     
     if lossless:
-        img.save(output_buffer, format='PNG')
+        img.save(output_buffer, format='WebP', lossless=True)
     else:
         if img_format not in ["jpg", "jpeg"]:
             st.warning("Only JPEG format is supported for lossy compression. Converting the image to JPEG...")
@@ -52,7 +52,7 @@ def audio_compression():
     """)
     
     # File upload - audio
-    audio_file = st.file_uploader("Upload an audio file", type=["mp3", "wav", "flac"])
+    audio_file = st.file_uploader("Upload an audio file", type=["mp3", "wav", "flac", "ogg"])
     
     if audio_file is not None:
         st.audio(audio_file, format='audio/mp3', start_time=0)
@@ -68,8 +68,8 @@ def audio_compression():
             
             # Download button for compressed audio
             st.write("### Download Compressed Audio")
-            audio_download_button_str = f"Download Compressed Audio File ({os.path.splitext(audio_file.name)[0]}_compressed.{('flac' if compression_type == 'Lossless' else 'mp3')})"
-            st.download_button(label=audio_download_button_str, data=compressed_audio, file_name=f"{os.path.splitext(audio_file.name)[0]}_compressed.{('flac' if compression_type == 'Lossless' else 'mp3')}", mime="audio/mpeg" if compression_type == "Lossy" else "audio/flac")
+            audio_download_button_str = f"Download Compressed Audio File ({os.path.splitext(audio_file.name)[0]}_compressed.{('opus' if compression_type == 'Lossless' else 'mp3')})"
+            st.download_button(label=audio_download_button_str, data=compressed_audio, file_name=f"{os.path.splitext(audio_file.name)[0]}_compressed.{('opus' if compression_type == 'Lossless' else 'mp3')}", mime="audio/opus" if compression_type == "Lossless" else "audio/mpeg")
 
 # Define page for image compression
 def image_compression():
@@ -107,7 +107,7 @@ def image_compression():
             # Download button for compressed image
             st.write("### Download Compressed Image")
             image_download_button_str = f"Download Compressed Image File"
-            st.download_button(label=image_download_button_str, data=compressed_image, file_name=f"{os.path.splitext(image_file.name)[0]}_compressed.{('png' if compression_type == 'Lossless' else 'jpg')}", mime="image/jpeg" if compression_type == "Lossy" else "image/png")
+            st.download_button(label=image_download_button_str, data=compressed_image, file_name=f"{os.path.splitext(image_file.name)[0]}_compressed.{('webp' if compression_type == 'Lossless' else 'jpg')}", mime="image/webp" if compression_type == "Lossless" else "image/jpeg")
 
 # Multipage function
 def multipage():
