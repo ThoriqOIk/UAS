@@ -2,3 +2,6 @@ streamlit
 pydub
 Pillow
 moviepy
+PIL
+tempfile
+ffmpeg-python
