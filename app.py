@@ -124,7 +124,7 @@ def image_compression():
             st.download_button(label=image_download_button_str, data=compressed_image, file_name=f"{os.path.splitext(image_file.name)[0]}_compressed.{('webp' if compression_type == 'Lossless' else 'jpg')}", mime="image/webp" if compression_type == "Lossless" else "image/jpeg")
 
 # Define page for video compression
-def compress_video(input_file, bitrate='500k', lossless=False):
+def video_compression(input_file, bitrate='500k', lossless=False):
     video = VideoFileClip(input_file)
     output_buffer = io.BytesIO()
     
