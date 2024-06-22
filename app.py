@@ -47,6 +47,7 @@ def compress_video(input_file, bitrate='500k', lossless=False):
     output_buffer.seek(0)
     return output_buffer.read()
 
+
 # Define page for audio compression
 def audio_compression():
     st.title("Audio Compression")
